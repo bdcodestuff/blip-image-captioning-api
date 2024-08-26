@@ -10,7 +10,7 @@ def load_model(model_name):
     try:
         # Load the pre-trained BLIP model for image-to-text captioning
         processor = Blip2Processor.from_pretrained(model_name)
-        model = Blip2ForConditionalGeneration.from_pretrained(model_name, load_in_8bit=True, device_map={"": 0}, torch_dtype=torch.float16)
+        model = Blip2ForConditionalGeneration.from_pretrained(model_name, torch_dtype=torch.float16)
         logger.info(f"Loaded model: {model_name}")
         return model, processor
     except Exception as e:
