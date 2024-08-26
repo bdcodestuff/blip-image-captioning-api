@@ -1,7 +1,7 @@
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    blip_model_name: str = "Salesforce/blip-image-captioning-large"
+    blip2_model_name: str = "Salesforce/blip2-opt-2.7b"
 
 settings = Settings()
 

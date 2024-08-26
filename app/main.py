@@ -1,6 +1,6 @@
 import jwt
 import os
-from fastapi import FastAPI, Header, File, UploadFile, HTTPException
+from fastapi import FastAPI, Header, File, UploadFile, HTTPException, Body
 import logging.config
 from .model import load_model, generate_caption
 from .utils import load_image_from_file
@@ -12,7 +12,7 @@ JWT_ALGORITHM = "HS256"
 app = FastAPI()
 
 # Load the BLIP model once when the app starts
-model, processor = load_model(settings.blip_model_name)
+model, processor = load_model(settings.blip2_model_name)
 
 # Configure logging
 logging.config.fileConfig('logging.conf', disable_existing_loggers=False)
@@ -24,7 +24,7 @@ async def read_root():
     return {"message": "Welcome to the Image Captioning API!"}
 
 @app.post("/caption")
-async def caption(image: UploadFile = File(...), authorization: str = Header(None), text: str = None):
+async def caption(image: UploadFile = File(...), authorization: str = Header(None), text: str = Body(None)):
 
     try:
         decoded = secure(authorization)

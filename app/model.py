@@ -1,13 +1,16 @@
 import logging
-from transformers import BlipProcessor, BlipForConditionalGeneration
+import torch
+from transformers import Blip2Processor, Blip2ForConditionalGeneration
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 logger = logging.getLogger(__name__)
 
 def load_model(model_name):
     try:
         # Load the pre-trained BLIP model for image-to-text captioning
-        processor = BlipProcessor.from_pretrained(model_name)
-        model = BlipForConditionalGeneration.from_pretrained(model_name)
+        processor = Blip2Processor.from_pretrained(model_name)
+        model = Blip2ForConditionalGeneration.from_pretrained(model_name, load_in_8bit=True, device_map={"": 0}, torch_dtype=torch.float16)
         logger.info(f"Loaded model: {model_name}")
         return model, processor
     except Exception as e:
@@ -19,14 +22,14 @@ def generate_caption(model, processor, image, text=None):
         # Prepare the inputs for captioning
         if text is not None:
             # Conditional image captioning
-            inputs = processor(image, text, return_tensors="pt")
+            inputs = processor(images=image, text=text, return_tensors="pt").to(device=device, dtype=torch.float16)
         else:
             # Unconditional image captioning
-            inputs = processor(image, return_tensors="pt")
+            inputs = processor(images=image, return_tensors="pt").to(device, torch.float16)
 
         # Generate the caption
-        out = model.generate(**inputs, max_new_tokens=200)
-        caption = processor.decode(out[0], skip_special_tokens=True)
+        out = model.generate(**inputs)
+        caption = processor.batch_decode(out, skip_special_tokens=True)[0].strip()
         logger.info(f"Generated caption: {caption}")
 
         return caption
