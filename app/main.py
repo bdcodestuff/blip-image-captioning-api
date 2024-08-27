@@ -24,7 +24,7 @@ async def read_root():
     return {"message": "Welcome to the Image Captioning API!"}
 
 @app.post("/caption")
-async def caption(image: UploadFile = File(...), authorization: str = Header(None), text: str = Body(None)):
+async def caption(image: UploadFile = File(...), authorization: str = Header(None)):
 
     try:
         decoded = secure(authorization)
@@ -36,7 +36,7 @@ async def caption(image: UploadFile = File(...), authorization: str = Header(Non
             raise HTTPException(status_code=400, detail="Invalid image format")
 
         loaded_image = load_image_from_file(await image.read())
-        caption = generate_caption(model, processor, loaded_image, text)
+        caption = generate_caption(model, processor, loaded_image)
         
 
         return {"caption": caption}

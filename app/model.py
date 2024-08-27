@@ -11,28 +11,25 @@ def load_model(model_name):
         # Load the pre-trained BLIP model for image-to-text captioning
         processor = Blip2Processor.from_pretrained(model_name)
         model = Blip2ForConditionalGeneration.from_pretrained(model_name, torch_dtype=torch.float16)
+        model.to(device)
         logger.info(f"Loaded model: {model_name}")
         return model, processor
     except Exception as e:
         logger.exception(f"Error loading model: {model_name}")
         raise e
 
-def generate_caption(model, processor, image, text=None):
+def generate_caption(model, processor, image):
+
     try:
         # Prepare the inputs for captioning
-        if text is not None:
-            # Conditional image captioning
-            inputs = processor(images=image, text=text, return_tensors="pt").to(device=device, dtype=torch.float16)
-        else:
-            # Unconditional image captioning
-            inputs = processor(images=image, return_tensors="pt").to(device, torch.float16)
+        text = "this is a picture of"
+        inputs = processor(image, text=text, return_tensors="pt").to(device, torch.float16)
 
-        # Generate the caption
-        out = model.generate(**inputs)
-        caption = processor.batch_decode(out, skip_special_tokens=True)[0].strip()
-        logger.info(f"Generated caption: {caption}")
+        generated_ids = model.generate(**inputs, max_new_tokens=20)
+        generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0].strip()
+        logger.info(f"Generated caption: {generated_text}")
 
-        return caption
+        return generated_text
     except Exception as e:
         logger.exception("Error during caption generation")
         raise e
